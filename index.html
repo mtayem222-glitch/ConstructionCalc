@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rebar Calculator</title>
+    <title>Footing Material & Rebar Calculator</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -29,7 +29,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold leading-tight">Construction Rebar Estimation</h1>
-                    <p class="text-xs text-slate-400">Design with ❤️ by Tayem</p>
+                    <p class="text-xs text-slate-400">design with love ❤️ by Tayem</p>
                 </div>
             </div>
             <div class="hidden sm:flex items-center space-x-2 text-xs bg-slate-800 px-3 py-1.5 rounded-full text-slate-300">
@@ -1169,7 +1169,105 @@
             }
         }
 
-        // ... existing footing & column calculation functions ...
+        // FOOTING ESTIMATOR
+        function calculateFootingEstimates() {
+            document.getElementById('diagramTitle').textContent = "Footing Mesh Rebar Layout";
+            const L = parseFloat(document.getElementById('longDim').value) || 0;
+            const B = parseFloat(document.getElementById('shortDim').value) || 0;
+            const H = parseFloat(document.getElementById('footingDepth').value) || 0;
+            const cover = parseFloat(document.getElementById('clearCover').value) || 0;
+            const isDouble = document.getElementById('meshLayer').value === 'double';
+            const includeHooks = document.getElementById('includeHooks').checked;
+            const customHook = parseFloat(document.getElementById('customHookLength').value) || 0;
+
+            const longSp = parseFloat(document.getElementById('longSpacing').value) || 6;
+            const shortSp = parseFloat(document.getElementById('shortSpacing').value) || 6;
+            const longBar = REBAR_SIZES[parseInt(document.getElementById('longBarSize').value)];
+            const shortBar = REBAR_SIZES[parseInt(document.getElementById('shortBarSize').value)];
+
+            const wastePct = (parseFloat(document.getElementById('wasteFactor').value) || 0) / 100;
+            const count = parseInt(document.getElementById('footingCount').value) || 1;
+
+            let L_m = unitSystem === 'imperial' ? L * 0.3048 : L;
+            let B_m = unitSystem === 'imperial' ? B * 0.3048 : B;
+            let H_m = unitSystem === 'imperial' ? (H / 12) * 0.3048 : H / 1000;
+            let cover_m = unitSystem === 'imperial' ? (cover / 12) * 0.3048 : cover / 1000;
+            let longSp_m = unitSystem === 'imperial' ? (longSp / 12) * 0.3048 : longSp / 1000;
+            let shortSp_m = unitSystem === 'imperial' ? (shortSp / 12) * 0.3048 : shortSp / 1000;
+
+            const volM3 = L_m * B_m * H_m * count;
+
+            let numLongBars = Math.floor((B_m - 2 * cover_m) / longSp_m) + 1;
+            let numShortBars = Math.floor((L_m - 2 * cover_m) / shortSp_m) + 1;
+
+            let hookLong_m = customHook > 0 ? (unitSystem==='imperial'?(customHook/12)*0.3048:customHook/1000) : (12 * (longBar.mm / 1000));
+            let hookShort_m = customHook > 0 ? (unitSystem==='imperial'?(customHook/12)*0.3048:customHook/1000) : (12 * (shortBar.mm / 1000));
+
+            let cutLong_m = (L_m - 2 * cover_m) + (includeHooks ? 2 * hookLong_m : 0);
+            let cutShort_m = (B_m - 2 * cover_m) + (includeHooks ? 2 * hookShort_m : 0);
+
+            let mult = isDouble ? 2 : 1;
+            let totalLongLen_m = (cutLong_m * numLongBars * mult * count) * (1 + wastePct);
+            let totalShortLen_m = (cutShort_m * numShortBars * mult * count) * (1 + wastePct);
+
+            let grandLen_m = totalLongLen_m + totalShortLen_m;
+            let grandWt_kg = (totalLongLen_m * longBar.weightKgM) + (totalShortLen_m * shortBar.weightKgM);
+
+            renderSummary(grandWt_kg, grandLen_m, volM3);
+
+            document.getElementById('breakdownTable').innerHTML = `
+                <tr><td class="px-4 py-3 font-semibold text-blue-600">Long Direction Mesh Bars (${isDouble?'Double':'Single'})</td><td>${longBar.name}</td><td>${numLongBars*mult*count} bars</td><td>${formatLen(cutLong_m)}</td><td>${formatTotalLen(totalLongLen_m)}</td><td class="text-right">${Math.round(totalLongLen_m*longBar.weightKgM)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-emerald-600">Short Direction Mesh Bars (${isDouble?'Double':'Single'})</td><td>${shortBar.name}</td><td>${numShortBars*mult*count} bars</td><td>${formatLen(cutShort_m)}</td><td>${formatTotalLen(totalShortLen_m)}</td><td class="text-right">${Math.round(totalShortLen_m*shortBar.weightKgM)} kg</td></tr>
+            `;
+
+            drawFootingDiagram(L_m, B_m, cover_m, numLongBars, numShortBars);
+        }
+
+        // COLUMN ESTIMATOR
+        function calculateColumnEstimates() {
+            document.getElementById('diagramTitle').textContent = "Column Cross-Section & Main Rebar Layout";
+            const b = parseFloat(document.getElementById('colWidth').value) || 0;
+            const h = parseFloat(document.getElementById('colDepth').value) || 0;
+            const H = parseFloat(document.getElementById('colHeight').value) || 0;
+            const cover = parseFloat(document.getElementById('colClearCover').value) || 0;
+            const mainCount = parseInt(document.getElementById('colMainBarCount').value) || 4;
+            const lap = parseFloat(document.getElementById('colLapLength').value) || 0;
+            const tieSp = parseFloat(document.getElementById('colTieSpacing').value) || 6;
+            const tieHook = parseFloat(document.getElementById('colHookLength').value) || 3;
+            const wastePct = (parseFloat(document.getElementById('colWasteFactor').value) || 0) / 100;
+            const count = parseInt(document.getElementById('columnCount').value) || 1;
+
+            const mainBar = REBAR_SIZES[parseInt(document.getElementById('colMainBarSize').value)];
+            const tieBar = REBAR_SIZES[parseInt(document.getElementById('colTieBarSize').value)];
+
+            let b_m = unitSystem === 'imperial' ? (b / 12) * 0.3048 : b / 1000;
+            let h_m = unitSystem === 'imperial' ? (h / 12) * 0.3048 : h / 1000;
+            let H_m = unitSystem === 'imperial' ? H * 0.3048 : H;
+            let cover_m = unitSystem === 'imperial' ? (cover / 12) * 0.3048 : cover / 1000;
+            let lap_m = unitSystem === 'imperial' ? (lap / 12) * 0.3048 : lap / 1000;
+            let tieSp_m = unitSystem === 'imperial' ? (tieSp / 12) * 0.3048 : tieSp / 1000;
+            let tieHook_m = unitSystem === 'imperial' ? (tieHook / 12) * 0.3048 : tieHook / 1000;
+
+            const volM3 = b_m * h_m * H_m * count;
+            const mainCut_m = H_m + lap_m;
+            const totalMainLen_m = (mainCut_m * mainCount * count) * (1 + wastePct);
+
+            const tieCut_m = 2 * (b_m - 2 * cover_m) + 2 * (h_m - 2 * cover_m) + (2 * tieHook_m);
+            const tieCount = Math.floor(H_m / tieSp_m) + 1;
+            const totalTieLen_m = (tieCut_m * tieCount * count) * (1 + wastePct);
+
+            const grandLen_m = totalMainLen_m + totalTieLen_m;
+            const grandWt_kg = (totalMainLen_m * mainBar.weightKgM) + (totalTieLen_m * tieBar.weightKgM);
+
+            renderSummary(grandWt_kg, grandLen_m, volM3);
+
+            document.getElementById('breakdownTable').innerHTML = `
+                <tr><td class="px-4 py-3 font-semibold text-indigo-600">Main Longitudinal Bars</td><td>${mainBar.name}</td><td>${mainCount*count} bars</td><td>${formatLen(mainCut_m)}</td><td>${formatTotalLen(totalMainLen_m)}</td><td class="text-right">${Math.round(totalMainLen_m*mainBar.weightKgM)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-slate-600">Column Ties / Stirrups</td><td>${tieBar.name}</td><td>${tieCount*count} ties</td><td>${formatLen(tieCut_m)}</td><td>${formatTotalLen(totalTieLen_m)}</td><td class="text-right">${Math.round(totalTieLen_m*tieBar.weightKgM)} kg</td></tr>
+            `;
+
+            drawColumnDiagram(b_m, h_m, cover_m, mainCount);
+        }
 
         // PILE ESTIMATOR
         function calculatePileEstimates() {
@@ -1446,7 +1544,7 @@
                 <tr><td class="px-4 py-3 font-semibold text-indigo-600">Step Distribution Steel</td><td>${distBar.name}</td><td>${distCount*count} bars</td><td>${formatLen(distCut_m)}</td><td>${formatTotalLen(totalDistLen_m)}</td><td class="text-right">${Math.round(totalDistLen_m*distBar.weightKgM)} kg</td></tr>
             `;
 
-            drawFootingDiagram(G_m, W_m, 0.02, distCount, mainCount);
+            drawStairDiagram(G_m, R_m, waist_m, distCount);
         }
 
         // Render Summary Helper
@@ -1480,13 +1578,123 @@
         const formatLen = (mVal) => unitSystem === 'imperial' ? (mVal/0.3048).toFixed(2) + ' ft' : mVal.toFixed(2) + ' m';
         const formatTotalLen = (mVal) => unitSystem === 'imperial' ? Math.round(mVal/0.3048) + ' ft' : Math.round(mVal) + ' m';
 
-        // Draw Circular Pile Section Diagram
+        // --- ALL CANVAS DIAGRAM DRAWING FUNCTIONS ---
+
+        // 1. Rectangular Mesh Diagram (Footing, Pile Cap, Slab)
+        function drawFootingDiagram(L, B, cover, numLong, numShort) {
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 40;
+            const scale = Math.min((canvas.width - padding*2) / L, (canvas.height - padding*2) / B);
+
+            const drawL = L * scale;
+            const drawB = B * scale;
+            const drawCover = cover * scale;
+
+            const startX = (canvas.width - drawL) / 2;
+            const startY = (canvas.height - drawB) / 2;
+
+            // Concrete Outer Rect
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            ctx.fillRect(startX, startY, drawL, drawB);
+            ctx.strokeRect(startX, startY, drawL, drawB);
+
+            // Clear Cover Boundary
+            ctx.strokeStyle = '#64748b';
+            ctx.setLineDash([4, 4]);
+            ctx.strokeRect(startX + drawCover, startY + drawCover, drawL - 2*drawCover, drawB - 2*drawCover);
+            ctx.setLineDash([]);
+
+            // Long Direction Bars (Blue)
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            const yStep = (drawB - 2 * drawCover) / Math.max(1, numLong - 1);
+            for (let i = 0; i < numLong; i++) {
+                let y = startY + drawCover + i * yStep;
+                ctx.beginPath();
+                ctx.moveTo(startX + drawCover, y);
+                ctx.lineTo(startX + drawL - drawCover, y);
+                ctx.stroke();
+            }
+
+            // Short Direction Bars (Green)
+            ctx.strokeStyle = '#10b981';
+            const xStep = (drawL - 2 * drawCover) / Math.max(1, numShort - 1);
+            for (let i = 0; i < numShort; i++) {
+                let x = startX + drawCover + i * xStep;
+                ctx.beginPath();
+                ctx.moveTo(x, startY + drawCover);
+                ctx.lineTo(x, startY + drawB - drawCover);
+                ctx.stroke();
+            }
+
+            document.getElementById('diagLongCount').textContent = numLong;
+            document.getElementById('diagShortCount').textContent = numShort;
+        }
+
+        // 2. Rectangular Cross Section Diagram (Column, Beam)
+        function drawColumnDiagram(b, h, cover, barCount) {
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 40;
+            const scale = Math.min((canvas.width - padding*2) / b, (canvas.height - padding*2) / h);
+
+            const drawB = b * scale;
+            const drawH = h * scale;
+            const drawCover = cover * scale;
+
+            const startX = (canvas.width - drawB) / 2;
+            const startY = (canvas.height - drawH) / 2;
+
+            // Concrete Outer Block
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 2;
+            ctx.fillRect(startX, startY, drawB, drawH);
+            ctx.strokeRect(startX, startY, drawB, drawH);
+
+            // Stirrup / Tie Boundary
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            const tieX = startX + drawCover;
+            const tieY = startY + drawCover;
+            const tieW = drawB - 2*drawCover;
+            const tieH = drawH - 2*drawCover;
+            ctx.strokeRect(tieX, tieY, tieW, tieH);
+
+            // Main Bars at Corners & Perimeter
+            ctx.fillStyle = '#38bdf8';
+            const perimeterBars = Math.max(4, barCount);
+            const sideCount = Math.ceil(perimeterBars / 4);
+
+            for (let i = 0; i <= sideCount; i++) {
+                let px = tieX + (i / sideCount) * tieW;
+                ctx.beginPath(); ctx.arc(px, tieY, 5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(px, tieY + tieH, 5, 0, Math.PI*2); ctx.fill();
+            }
+            for (let j = 1; j < sideCount; j++) {
+                let py = tieY + (j / sideCount) * tieH;
+                ctx.beginPath(); ctx.arc(tieX, py, 5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(tieX + tieW, py, 5, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        // 3. Draw Circular Pile Section Diagram
         function drawPileDiagram(dia, cover, barCount) {
             const container = document.getElementById('canvasContainer');
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
 
-            const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const padding = 40;
@@ -1526,13 +1734,12 @@
             }
         }
 
-        // Draw T-Beam Diagram
+        // 4. Draw T-Beam Diagram
         function drawTBeamDiagram(bf, hf, bw, D, cover) {
             const container = document.getElementById('canvasContainer');
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
 
-            const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const padding = 40;
@@ -1564,10 +1771,67 @@
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
+
+            // Tension Rebar at Bottom Web
+            ctx.fillStyle = '#fb7185';
+            const webCenterX = startX + drawBf / 2;
+            const botY = startY + drawD - (cover * scale);
+            ctx.beginPath(); ctx.arc(webCenterX - drawBw*0.25, botY, 5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(webCenterX + drawBw*0.25, botY, 5, 0, Math.PI*2); ctx.fill();
+        }
+
+        // 5. Draw Staircase Section Diagram
+        function drawStairDiagram(G, R, waist, barCount) {
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 50;
+            const scale = Math.min((canvas.width - padding*2) / G, (canvas.height - padding*2) / R);
+
+            const startX = (canvas.width - G * scale) / 2;
+            const startY = canvas.height - (canvas.height - R * scale) / 2;
+
+            const endX = startX + G * scale;
+            const endY = startY - R * scale;
+
+            // Inclined Waist Slab Outline
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.lineTo(endX, endY + waist * scale * 2);
+            ctx.lineTo(startX, startY + waist * scale * 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Main Inclined Steel Bar
+            ctx.strokeStyle = '#c084fc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(startX + 10, startY + 15);
+            ctx.lineTo(endX - 10, endY + 15);
+            ctx.stroke();
+
+            // Step Bars
+            ctx.fillStyle = '#38bdf8';
+            for (let i = 0; i < 6; i++) {
+                let px = startX + (i / 5) * (endX - startX);
+                let py = startY + (i / 5) * (endY - startY) + 15;
+                ctx.beginPath();
+                ctx.arc(px, py, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
         }
 
         // Add event listeners for all forms
-        [pileForm, pileCapForm, beamForm, tbeamForm, slabForm, stairForm].forEach(f => {
+        [form, columnForm, pileForm, pileCapForm, beamForm, tbeamForm, slabForm, stairForm].forEach(f => {
             if (f) {
                 f.addEventListener('input', calculateEstimates);
                 f.addEventListener('change', calculateEstimates);
