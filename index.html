@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footing Material & Rebar Calculator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+    <!-- Header -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 p-2 rounded-lg text-white">
+                    <i data-lucide="box" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight">Footing & Column Estimator PRO</h1>
+                    <p class="text-xs text-slate-400">Structural Rebar & Concrete Quantity Calculation</p>
+                </div>
+            </div>
+            <div class="hidden sm:flex items-center space-x-2 text-xs bg-slate-800 px-3 py-1.5 rounded-full text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Standard Metric & Imperial Calculation</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <!-- Module Selector Tabs -->
+        <div class="flex overflow-x-auto justify-center border-b border-slate-200 mb-6 bg-slate-100 p-1.5 rounded-xl max-w-full space-x-1 scrollbar-none">
+            <button id="tabFootingBtn" class="py-2 px-3.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="box" class="w-4 h-4 text-blue-600"></i> Footing
+            </button>
+            <button id="tabColumnBtn" class="py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="columns" class="w-4 h-4 text-indigo-600"></i> Column
+            </button>
+            <button id="tabPileBtn" class="py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="cylinder" class="w-4 h-4 text-cyan-600"></i> Pile
+            </button>
+            <button id="tabPileCapBtn" class="py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="layers-3" class="w-4 h-4 text-teal-600"></i> Pile Cap
+            </button>
+            <button id="tabBeamBtn" class="py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="minus" class="w-4 h-4 text-orange-600"></i> Beam
+            </button>
+            <button id="tabTBeamBtn" class="py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="spline" class="w-4 h-4 text-rose-600"></i> T-Beam
+            </button>
+            <button id="tabSlabBtn" class="py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="layout-grid" class="w-4 h-4 text-emerald-600"></i> Slab
+            </button>
+            <button id="tabStairBtn" class="py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="trending-up" class="w-4 h-4 text-purple-600"></i> Staircase
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- Input Controls Form (Left Column) -->
+            <div class="lg:col-span-5 space-y-6">
+                <!-- FOOTING FORM -->
+                <div id="footingFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="sliders" class="w-5 h-5 text-blue-600"></i>
+                            Footing Specifications
+                        </h2>
+                        <!-- Unit Selector -->
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button class="unitFtBtn px-3 py-1 rounded-md bg-white shadow-sm text-slate-800 transition">Imperial (ft/in)</button>
+                            <button class="unitMBtn px-3 py-1 rounded-md text-slate-500 hover:text-slate-800 transition">Metric (m/mm)</button>
+                        </div>
+                    </div>
+
+                    <form id="estimatorForm" class="space-y-4">
+                        <!-- Geometry Inputs -->
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Footing Dimensions</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Long Direction (L)</label>
+                                    <div class="relative">
+                                        <input type="number" id="longDim" value="10" step="0.1" min="0.1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:bg-white transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Short Direction (B)</label>
+                                    <div class="relative">
+                                        <input type="number" id="shortDim" value="10" step="0.1" min="0.1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:bg-white transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Thickness/Depth (H)</label>
+                                    <div class="relative">
+                                        <input type="number" id="footingDepth" value="18" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:bg-white transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Clear Cover (All Sides)</label>
+                                    <div class="relative">
+                                        <input type="number" id="clearCover" value="3" step="0.25" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:bg-white transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        <!-- Rebar Configuration -->
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Rebar Layout</h3>
+                            
+                            <!-- Rebar Layer Selection -->
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Reinforcement Layer Configuration</label>
+                                <select id="meshLayer" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:bg-white transition">
+                                    <option value="single">Single Mat (Bottom Only)</option>
+                                    <option value="double">Double Mat (Top & Bottom Independent)</option>
+                                </select>
+                            </div>
+
+                            <!-- End Hook Option & Manual L-Bend Input -->
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-xs font-medium text-slate-700 block">Include End L-Hooks (90° Bend)</label>
+                                        <span class="text-[10px] text-slate-400">Anchorage bend at both ends of bar</span>
+                                    </div>
+                                    <input type="checkbox" id="includeHooks" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-slate-300">
+                                </div>
+                                
+                                <div id="hookLengthContainer" class="pt-1">
+                                    <label class="block text-[11px] font-medium text-slate-600 mb-1">Custom L-Bend / Hook Length (Per End)</label>
+                                    <div class="relative">
+                                        <input type="number" id="customHookLength" value="6" step="0.5" min="0" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:bg-white transition" placeholder="Auto calculated if 0">
+                                        <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400">Leave blank/0 for standard automatic 12d_b calculation</span>
+                                </div>
+                            </div>
+
+                            <!-- BOTTOM MAT CONFIGURATION -->
+                            <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-3">
+                                <span class="text-xs font-bold text-blue-900 block flex items-center gap-1">
+                                    <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-600"></i> Bottom Mat Reinforcement
+                                </span>
+                                
+                                <!-- Bottom Long -->
+                                <div class="space-y-1">
+                                    <span class="text-[11px] font-semibold text-slate-700">Long Direction Bars (Bottom)</span>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-[10px] font-medium text-slate-500">Bar Size</label>
+                                            <select id="longBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-medium text-slate-500">Spacing (c/c)</label>
+                                            <div class="relative">
+                                                <input type="number" id="longSpacing" value="6" step="0.25" min="1" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition" required>
+                                                <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Short -->
+                                <div class="space-y-1">
+                                    <span class="text-[11px] font-semibold text-slate-700">Short Direction Bars (Bottom)</span>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-[10px] font-medium text-slate-500">Bar Size</label>
+                                            <select id="shortBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-medium text-slate-500">Spacing (c/c)</label>
+                                            <div class="relative">
+                                                <input type="number" id="shortSpacing" value="6" step="0.25" min="1" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition" required>
+                                                <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TOP MAT CONFIGURATION (Appears on Double Mat Select) -->
+                            <div id="topMatContainer" class="p-3 bg-purple-50/50 rounded-xl border border-purple-100 space-y-3 hidden">
+                                <span class="text-xs font-bold text-purple-900 block flex items-center gap-1">
+                                    <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-600"></i> Top Mat Reinforcement (Extra Controls)
+                                </span>
+                                
+                                <!-- Top Long -->
+                                <div class="space-y-1">
+                                    <span class="text-[11px] font-semibold text-slate-700">Long Direction Bars (Top)</span>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-[10px] font-medium text-slate-500">Bar Size</label>
+                                            <select id="topLongBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-medium text-slate-500">Spacing (c/c)</label>
+                                            <div class="relative">
+                                                <input type="number" id="topLongSpacing" value="6" step="0.25" min="1" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition">
+                                                <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Top Short -->
+                                <div class="space-y-1">
+                                    <span class="text-[11px] font-semibold text-slate-700">Short Direction Bars (Top)</span>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-[10px] font-medium text-slate-500">Bar Size</label>
+                                            <select id="topShortBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-medium text-slate-500">Spacing (c/c)</label>
+                                            <div class="relative">
+                                                <input type="number" id="topShortSpacing" value="6" step="0.25" min="1" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition">
+                                                <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wastage & Footing Count -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Waste Factor (%)</label>
+                                    <input type="number" id="wasteFactor" value="5" min="0" max="25" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Number of Footings</label>
+                                    <input type="number" id="footingCount" value="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- COLUMN FORM CARD -->
+                <div id="columnFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="columns" class="w-5 h-5 text-indigo-600"></i>
+                            Column Specifications
+                        </h2>
+                        <!-- Unit Selector -->
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button class="unitFtBtn px-3 py-1 rounded-md bg-white shadow-sm text-slate-800 transition">Imperial (ft/in)</button>
+                            <button class="unitMBtn px-3 py-1 rounded-md text-slate-500 hover:text-slate-800 transition">Metric (m/mm)</button>
+                        </div>
+                    </div>
+
+                    <form id="columnForm" class="space-y-4">
+                        <!-- Column Dimensions -->
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Column Dimensions</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Column Width (X)</label>
+                                    <div class="relative">
+                                        <input type="number" id="colWidth" value="12" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Column Depth (Y)</label>
+                                    <div class="relative">
+                                        <input type="number" id="colDepth" value="12" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Column Height (H)</label>
+                                    <div class="relative">
+                                        <input type="number" id="colHeight" value="10" step="0.5" min="0.1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Clear Cover</label>
+                                    <div class="relative">
+                                        <input type="number" id="colClearCover" value="1.5" step="0.25" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        <!-- Main Bar Configuration -->
+                        <div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-3">
+                            <span class="text-xs font-bold text-indigo-900 block flex items-center gap-1">
+                                <i data-lucide="align-justify" class="w-3.5 h-3.5 text-indigo-600"></i> Main Longitudinal Bars
+                            </span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Main Bar Size</label>
+                                    <select id="colMainBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Number of Main Bars</label>
+                                    <input type="number" id="colMainBarCount" value="8" min="4" step="2" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-medium text-slate-500">Lap / Development Extension (Top & Bottom)</label>
+                                <div class="relative">
+                                    <input type="number" id="colLapLength" value="18" step="1" min="0" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition">
+                                    <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stirrup / Tie Configuration -->
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                            <span class="text-xs font-bold text-slate-800 block flex items-center gap-1">
+                                <i data-lucide="square" class="w-3.5 h-3.5 text-slate-600"></i> Column Ties / Stirrups
+                            </span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Tie Bar Size</label>
+                                    <select id="colTieBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Tie Spacing (c/c)</label>
+                                    <div class="relative">
+                                        <input type="number" id="colTieSpacing" value="6" step="0.5" min="1" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-medium text-slate-500">Stirrup 135° Hook Length (Per Hook)</label>
+                                <div class="relative">
+                                    <input type="number" id="colHookLength" value="3" step="0.5" min="0" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition">
+                                    <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Waste & Column Count -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Waste Factor (%)</label>
+                                <input type="number" id="colWasteFactor" value="5" min="0" max="25" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Number of Columns</label>
+                                <input type="number" id="columnCount" value="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- PILE FORM CARD -->
+                <div id="pileFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="cylinder" class="w-5 h-5 text-cyan-600"></i> Pile Specifications
+                        </h2>
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button class="unitFtBtn px-3 py-1 rounded-md bg-white shadow-sm text-slate-800 transition">Imperial (ft/in)</button>
+                            <button class="unitMBtn px-3 py-1 rounded-md text-slate-500 hover:text-slate-800 transition">Metric (m/mm)</button>
+                        </div>
+                    </div>
+                    <form id="pileForm" class="space-y-4">
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Pile Geometry</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Pile Diameter</label>
+                                    <div class="relative">
+                                        <input type="number" id="pileDia" value="20" step="1" min="6" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Pile Depth / Length</label>
+                                    <div class="relative">
+                                        <input type="number" id="pileLength" value="40" step="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Clear Cover</label>
+                                <div class="relative">
+                                    <input type="number" id="pileCover" value="3" step="0.25" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                    <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-cyan-50/50 rounded-xl border border-cyan-100 space-y-3">
+                            <span class="text-xs font-bold text-cyan-900 block">Main Vertical Bars</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Bar Size</label>
+                                    <select id="pileMainBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Bar Count</label>
+                                    <input type="number" id="pileMainBarCount" value="8" min="4" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                            <span class="text-xs font-bold text-slate-800 block">Spiral / Helical Ties</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Tie Bar Size</label>
+                                    <select id="pileTieBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Spiral Pitch / Spacing</label>
+                                    <div class="relative">
+                                        <input type="number" id="pileSpiralPitch" value="6" step="0.5" min="2" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Waste Factor (%)</label>
+                                <input type="number" id="pileWasteFactor" value="5" min="0" max="25" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Number of Piles</label>
+                                <input type="number" id="pileCount" value="4" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- PILE CAP FORM CARD -->
+                <div id="pileCapFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="layers-3" class="w-5 h-5 text-teal-600"></i> Pile Cap Specifications
+                        </h2>
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button class="unitFtBtn px-3 py-1 rounded-md bg-white shadow-sm text-slate-800 transition">Imperial (ft/in)</button>
+                            <button class="unitMBtn px-3 py-1 rounded-md text-slate-500 hover:text-slate-800 transition">Metric (m/mm)</button>
+                        </div>
+                    </div>
+                    <form id="pileCapForm" class="space-y-4">
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Cap Dimensions</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Length (L)</label>
+                                    <div class="relative">
+                                        <input type="number" id="pcLength" value="8" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Width (W)</label>
+                                    <div class="relative">
+                                        <input type="number" id="pcWidth" value="8" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Cap Thickness (H)</label>
+                                    <div class="relative">
+                                        <input type="number" id="pcThickness" value="30" step="1" min="6" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Clear Cover</label>
+                                    <div class="relative">
+                                        <input type="number" id="pcCover" value="3" step="0.25" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-teal-50/50 rounded-xl border border-teal-100 space-y-3">
+                            <span class="text-xs font-bold text-teal-900 block">Cap Bottom & Top Mesh</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Bar Size</label>
+                                    <select id="pcBarSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Spacing (c/c)</label>
+                                    <div class="relative">
+                                        <input type="number" id="pcSpacing" value="6" step="0.5" min="2" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between pt-1">
+                                <label class="text-xs font-medium text-slate-700">Include Top Mesh Layer</label>
+                                <input type="checkbox" id="pcDoubleMesh" checked class="w-4 h-4 text-teal-600 rounded">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Waste Factor (%)</label>
+                                <input type="number" id="pcWasteFactor" value="5" min="0" max="25" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Number of Caps</label>
+                                <input type="number" id="pcCount" value="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- BEAM FORM CARD -->
+                <div id="beamFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="minus" class="w-5 h-5 text-orange-600"></i> Beam Specifications
+                        </h2>
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button class="unitFtBtn px-3 py-1 rounded-md bg-white shadow-sm text-slate-800 transition">Imperial (ft/in)</button>
+                            <button class="unitMBtn px-3 py-1 rounded-md text-slate-500 hover:text-slate-800 transition">Metric (m/mm)</button>
+                        </div>
+                    </div>
+                    <form id="beamForm" class="space-y-4">
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Beam Dimensions</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Beam Width (b)</label>
+                                    <div class="relative">
+                                        <input type="number" id="bmWidth" value="12" step="0.5" min="4" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Beam Depth (D)</label>
+                                    <div class="relative">
+                                        <input type="number" id="bmDepth" value="18" step="0.5" min="6" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Span Length (L)</label>
+                                    <div class="relative">
+                                        <input type="number" id="bmSpan" value="16" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Clear Cover</label>
+                                    <div class="relative">
+                                        <input type="number" id="bmCover" value="1.5" step="0.25" min="0.5" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-orange-50/50 rounded-xl border border-orange-100 space-y-3">
+                            <span class="text-xs font-bold text-orange-900 block">Main Flexural Rebar</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Bottom Bars Size & Qty</label>
+                                    <div class="flex gap-1">
+                                        <select id="bmBotBarSize" class="w-2/3 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800 transition"></select>
+                                        <input type="number" id="bmBotBarCount" value="3" min="2" class="w-1/3 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Top Bars Size & Qty</label>
+                                    <div class="flex gap-1">
+                                        <select id="bmTopBarSize" class="w-2/3 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800 transition"></select>
+                                        <input type="number" id="bmTopBarCount" value="2" min="2" class="w-1/3 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                            <span class="text-xs font-bold text-slate-800 block">Stirrups</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Stirrup Size</label>
+                                    <select id="bmStirrupSize" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Stirrup Spacing</label>
+                                    <div class="relative">
+                                        <input type="number" id="bmStirrupSpacing" value="6" step="0.5" min="2" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-2.5 top-1.5 text-[11px] text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Waste Factor (%)</label>
+                                <input type="number" id="bmWasteFactor" value="5" min="0" max="25" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Number of Beams</label>
+                                <input type="number" id="bmCount" value="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- T-BEAM FORM CARD -->
+                <div id="tbeamFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="spline" class="w-5 h-5 text-rose-600"></i> T-Beam Specifications
+                        </h2>
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button class="unitFtBtn px-3 py-1 rounded-md bg-white shadow-sm text-slate-800 transition">Imperial (ft/in)</button>
+                            <button class="unitMBtn px-3 py-1 rounded-md text-slate-500 hover:text-slate-800 transition">Metric (m/mm)</button>
+                        </div>
+                    </div>
+                    <form id="tbeamForm" class="space-y-4">
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Flange & Web Dimensions</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Flange Width (bf)</label>
+                                    <div class="relative">
+                                        <input type="number" id="tbFlangeWidth" value="36" step="1" min="6" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Flange Depth (hf)</label>
+                                    <div class="relative">
+                                        <input type="number" id="tbFlangeDepth" value="5" step="0.5" min="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Web Width (bw)</label>
+                                    <div class="relative">
+                                        <input type="number" id="tbWebWidth" value="12" step="0.5" min="4" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Total Depth (D)</label>
+                                    <div class="relative">
+                                        <input type="number" id="tbTotalDepth" value="20" step="0.5" min="6" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Span Length (L)</label>
+                                    <div class="relative">
+                                        <input type="number" id="tbSpan" value="20" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Clear Cover</label>
+                                    <div class="relative">
+                                        <input type="number" id="tbCover" value="1.5" step="0.25" min="0.5" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-3">
+                            <span class="text-xs font-bold text-rose-900 block">Rebar Setup</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Main Tension Bars</label>
+                                    <div class="flex gap-1">
+                                        <select id="tbBotBarSize" class="w-2/3 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800 transition"></select>
+                                        <input type="number" id="tbBotBarCount" value="4" min="2" class="w-1/3 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Stirrup Size & Pitch</label>
+                                    <div class="flex gap-1">
+                                        <select id="tbStirrupSize" class="w-1/2 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800 transition"></select>
+                                        <input type="number" id="tbStirrupSpacing" value="6" min="2" class="w-1/2 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Waste Factor (%)</label>
+                                <input type="number" id="tbWasteFactor" value="5" min="0" max="25" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Number of T-Beams</label>
+                                <input type="number" id="tbCount" value="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- SLAB FORM CARD -->
+                <div id="slabFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="layout-grid" class="w-5 h-5 text-emerald-600"></i> Floor Slab Specifications
+                        </h2>
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button class="unitFtBtn px-3 py-1 rounded-md bg-white shadow-sm text-slate-800 transition">Imperial (ft/in)</button>
+                            <button class="unitMBtn px-3 py-1 rounded-md text-slate-500 hover:text-slate-800 transition">Metric (m/mm)</button>
+                        </div>
+                    </div>
+                    <form id="slabForm" class="space-y-4">
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Slab Geometry</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Long Span (Lx)</label>
+                                    <div class="relative">
+                                        <input type="number" id="slLong" value="20" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Short Span (Ly)</label>
+                                    <div class="relative">
+                                        <input type="number" id="slShort" value="15" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Slab Thickness</label>
+                                    <div class="relative">
+                                        <input type="number" id="slThickness" value="6" step="0.5" min="3" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Clear Cover</label>
+                                    <div class="relative">
+                                        <input type="number" id="slCover" value="0.75" step="0.25" min="0.5" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-3">
+                            <span class="text-xs font-bold text-emerald-900 block">Reinforcement Details</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Main Bar Size & Spacing</label>
+                                    <div class="flex gap-1">
+                                        <select id="slMainBarSize" class="w-1/2 bg-white border border-slate-200 rounded-lg px-1.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                        <input type="number" id="slMainSpacing" value="6" min="2" class="w-1/2 bg-white border border-slate-200 rounded-lg px-1.5 py-1.5 text-xs text-slate-800">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Distribution Bar & Spacing</label>
+                                    <div class="flex gap-1">
+                                        <select id="slDistBarSize" class="w-1/2 bg-white border border-slate-200 rounded-lg px-1.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                        <input type="number" id="slDistSpacing" value="8" min="2" class="w-1/2 bg-white border border-slate-200 rounded-lg px-1.5 py-1.5 text-xs text-slate-800">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between pt-1">
+                                <label class="text-xs font-medium text-slate-700">Crank / Bent-Up Bars (45° Bend)</label>
+                                <input type="checkbox" id="slCrank" checked class="w-4 h-4 text-emerald-600 rounded">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Waste Factor (%)</label>
+                                <input type="number" id="slWasteFactor" value="5" min="0" max="25" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Number of Slabs</label>
+                                <input type="number" id="slCount" value="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- STAIR FORM CARD -->
+                <div id="stairFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-5 h-5 text-purple-600"></i> Staircase Specifications
+                        </h2>
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button class="unitFtBtn px-3 py-1 rounded-md bg-white shadow-sm text-slate-800 transition">Imperial (ft/in)</button>
+                            <button class="unitMBtn px-3 py-1 rounded-md text-slate-500 hover:text-slate-800 transition">Metric (m/mm)</button>
+                        </div>
+                    </div>
+                    <form id="stairForm" class="space-y-4">
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Stair Geometry</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Flight Width</label>
+                                    <div class="relative">
+                                        <input type="number" id="stWidth" value="4" step="0.25" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Horizontal Going</label>
+                                    <div class="relative">
+                                        <input type="number" id="stGoing" value="10" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Total Rise</label>
+                                    <div class="relative">
+                                        <input type="number" id="stRise" value="6" step="0.5" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="unitLabel absolute right-3 top-2.5 text-xs text-slate-400">ft</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Waist Slab Depth</label>
+                                    <div class="relative">
+                                        <input type="number" id="stWaist" value="6" step="0.5" min="3" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition" required>
+                                        <span class="subUnitLabel absolute right-3 top-2.5 text-xs text-slate-400">in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-purple-50/50 rounded-xl border border-purple-100 space-y-3">
+                            <span class="text-xs font-bold text-purple-900 block">Stair Rebar Setup</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Main Bar Size & Pitch</label>
+                                    <div class="flex gap-1">
+                                        <select id="stMainBarSize" class="w-1/2 bg-white border border-slate-200 rounded-lg px-1.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                        <input type="number" id="stMainSpacing" value="6" min="2" class="w-1/2 bg-white border border-slate-200 rounded-lg px-1.5 py-1.5 text-xs text-slate-800">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-slate-500">Distribution Bar & Pitch</label>
+                                    <div class="flex gap-1">
+                                        <select id="stDistBarSize" class="w-1/2 bg-white border border-slate-200 rounded-lg px-1.5 py-1.5 text-xs text-slate-800 transition"></select>
+                                        <input type="number" id="stDistSpacing" value="8" min="2" class="w-1/2 bg-white border border-slate-200 rounded-lg px-1.5 py-1.5 text-xs text-slate-800">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Waste Factor (%)</label>
+                                <input type="number" id="stWasteFactor" value="5" min="0" max="25" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Number of Flights</label>
+                                <input type="number" id="stCount" value="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 transition">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Output & Diagram (Right Column) -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Top Summary Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-blue-600 text-white rounded-2xl p-5 shadow-lg shadow-blue-500/20 relative overflow-hidden">
+                        <div class="absolute -right-2 -bottom-2 opacity-15">
+                            <i data-lucide="weight" class="w-24 h-24"></i>
+                        </div>
+                        <p class="text-xs uppercase font-semibold text-blue-200 tracking-wider">Total Rebar Weight</p>
+                        <h3 class="text-3xl font-extrabold mt-1" id="resTotalWeight">0 kg</h3>
+                        <p class="text-xs text-blue-100 mt-2" id="resTotalWeightSub">0 lbs / 0.00 Tons</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+                        <p class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Total Rebar Length</p>
+                        <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="resTotalLength">0 ft</h3>
+                        <p class="text-xs text-slate-500 mt-2" id="resStockBars">0 Stock Bars required</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+                        <p class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Concrete Volume</p>
+                        <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="resConcreteVol">0 cu.ft</h3>
+                        <p class="text-xs text-slate-500 mt-2" id="resConcreteVolSub">0 cu.m / 0 cu.yd</p>
+                    </div>
+                </div>
+
+                <!-- Visual 2D Footing Interactive Diagram -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="eye" class="w-4 h-4 text-blue-600"></i>
+                            <span id="diagramTitle">Interactive Rebar Layout Diagram</span>
+                        </h3>
+                        <span class="text-xs bg-slate-100 px-2.5 py-1 rounded-md text-slate-600 font-mono" id="diagramLegend">Spacing: 6" c/c</span>
+                    </div>
+
+                    <div class="w-full h-64 bg-slate-900 rounded-xl relative flex items-center justify-center p-4 overflow-hidden" id="canvasContainer">
+                        <canvas id="footingCanvas" class="max-w-full max-h-full"></canvas>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-xs text-slate-600 pt-1" id="diagramFooter">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
+                            <span>Long Direction Bars (<span id="diagLongCount">0</span> bars)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span>Short Direction Bars (<span id="diagShortCount">0</span> bars)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Breakdown Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="list-checks" class="w-4 h-4 text-blue-600"></i>
+                            Detailed Material Breakdown
+                        </h3>
+                        <button id="copySummaryBtn" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 transition">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Summary
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-100">
+                                <tr>
+                                    <th class="px-4 py-3">Bar Description</th>
+                                    <th class="px-4 py-3">Bar Size</th>
+                                    <th class="px-4 py-3">Count</th>
+                                    <th class="px-4 py-3">Cut Length / Bar</th>
+                                    <th class="px-4 py-3">Total Length</th>
+                                    <th class="px-4 py-3 text-right">Total Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700" id="breakdownTable">
+                                <!-- Dynamic Insertion -->
+                            </tbody>
+                            <tfoot class="bg-slate-50 font-semibold text-slate-900 border-t border-slate-200">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-3">Total (Including Waste)</td>
+                                    <td class="px-4 py-3" id="tbTotalLength">0 ft</td>
+                                    <td class="px-4 py-3 text-right" id="tbTotalWeight">0 kg</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Stock Bar Cutting Estimation Box -->
+                <div class="bg-slate-900 text-slate-200 rounded-2xl p-5 space-y-3">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                        <i data-lucide="truck" class="w-4 h-4 text-blue-400"></i>
+                        Procurement & Stock Bar Recommendation
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 space-y-1">
+                            <span class="text-slate-400 block text-[11px]">Standard Commercial Length</span>
+                            <div class="font-bold text-white text-base" id="stockBarLengthText">40 ft (12 m) Bars</div>
+                            <p class="text-slate-400 text-[11px]" id="stockBarPiecesText">Order approx: 0 full bars</p>
+                        </div>
+                        <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 space-y-1">
+                            <span class="text-slate-400 block text-[11px]">Estimated Scrap / Cut Waste</span>
+                            <div class="font-bold text-amber-400 text-base" id="scrapRatioText">0.0%</div>
+                            <p class="text-slate-400 text-[11px]" id="unitWeightInfo">Total Bars: 0 pieces</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center space-x-2 transition opacity-0 pointer-events-none transform translate-y-2">
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMsg">Copied to clipboard!</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // System Data Definitions
+        const REBAR_SIZES = [
+            { name: "#3 (10 mm)", mm: 10, weightKgM: 0.617, weightLbsFt: 0.376 },
+            { name: "#4 (12 mm)", mm: 12, weightKgM: 0.888, weightLbsFt: 0.668 },
+            { name: "#5 (16 mm)", mm: 16, weightKgM: 1.579, weightLbsFt: 1.043 },
+            { name: "#6 (20 mm)", mm: 20, weightKgM: 2.466, weightLbsFt: 1.502 },
+            { name: "#7 (22 mm)", mm: 22, weightKgM: 2.980, weightLbsFt: 2.044 },
+            { name: "#8 (25 mm)", mm: 25, weightKgM: 3.853, weightLbsFt: 2.670 },
+            { name: "#9 (28 mm)", mm: 28, weightKgM: 4.830, weightLbsFt: 3.400 },
+            { name: "#10 (32 mm)", mm: 32, weightKgM: 6.313, weightLbsFt: 4.303 }
+        ];
+
+        // App State
+        let unitSystem = 'imperial';
+        let activeModule = 'footing'; // 'footing', 'column', 'pile', 'pilecap', 'beam', 'tbeam', 'slab', 'stair'
+
+        // Element References
+        const form = document.getElementById('estimatorForm');
+        const columnForm = document.getElementById('columnForm');
+        const pileForm = document.getElementById('pileForm');
+        const pileCapForm = document.getElementById('pileCapForm');
+        const beamForm = document.getElementById('beamForm');
+        const tbeamForm = document.getElementById('tbeamForm');
+        const slabForm = document.getElementById('slabForm');
+        const stairForm = document.getElementById('stairForm');
+
+        const canvas = document.getElementById('footingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Tab Navigation Buttons
+        const tabs = [
+            { id: 'tabFootingBtn', cardId: 'footingFormCard', module: 'footing', color: 'blue' },
+            { id: 'tabColumnBtn', cardId: 'columnFormCard', module: 'column', color: 'indigo' },
+            { id: 'tabPileBtn', cardId: 'pileFormCard', module: 'pile', color: 'cyan' },
+            { id: 'tabPileCapBtn', cardId: 'pileCapFormCard', module: 'pileCap', color: 'teal' },
+            { id: 'tabBeamBtn', cardId: 'beamFormCard', module: 'beam', color: 'orange' },
+            { id: 'tabTBeamBtn', cardId: 'tbeamFormCard', module: 'tbeam', color: 'rose' },
+            { id: 'tabSlabBtn', cardId: 'slabFormCard', module: 'slab', color: 'emerald' },
+            { id: 'tabStairBtn', cardId: 'stairFormCard', module: 'stair', color: 'purple' }
+        ];
+
+        tabs.forEach(tab => {
+            const btn = document.getElementById(tab.id);
+            btn.addEventListener('click', () => {
+                activeModule = tab.module;
+                tabs.forEach(t => {
+                    const b = document.getElementById(t.id);
+                    const card = document.getElementById(t.cardId);
+                    if (t.module === tab.module) {
+                        b.className = `py-2 px-3.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap`;
+                        card.classList.remove('hidden');
+                    } else {
+                        b.className = `py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 whitespace-nowrap`;
+                        card.classList.add('hidden');
+                    }
+                });
+                calculateEstimates();
+            });
+        });
+
+        // Initialize Options
+        function initSelects() {
+            const selectIds = [
+                'longBarSize', 'shortBarSize', 'topLongBarSize', 'topShortBarSize',
+                'colMainBarSize', 'colTieBarSize', 'pileMainBarSize', 'pileTieBarSize',
+                'pcBarSize', 'bmBotBarSize', 'bmTopBarSize', 'bmStirrupSize',
+                'tbBotBarSize', 'tbStirrupSize', 'slMainBarSize', 'slDistBarSize',
+                'stMainBarSize', 'stDistBarSize'
+            ];
+
+            selectIds.forEach(id => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                select.innerHTML = '';
+                REBAR_SIZES.forEach((size, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = index;
+                    opt.textContent = size.name;
+                    if (id.includes('Stirrup') || id.includes('Tie') || id.includes('Dist')) {
+                        if (size.mm === 10) opt.selected = true;
+                    } else {
+                        if (size.mm === 16) opt.selected = true;
+                    }
+                    select.appendChild(opt);
+                });
+            });
+        }
+
+        // Calculation Dispatcher
+        function calculateEstimates() {
+            switch(activeModule) {
+                case 'footing': calculateFootingEstimates(); break;
+                case 'column': calculateColumnEstimates(); break;
+                case 'pile': calculatePileEstimates(); break;
+                case 'pileCap': calculatePileCapEstimates(); break;
+                case 'beam': calculateBeamEstimates(); break;
+                case 'tbeam': calculateTBeamEstimates(); break;
+                case 'slab': calculateSlabEstimates(); break;
+                case 'stair': calculateStairEstimates(); break;
+            }
+        }
+
+        // ... existing footing & column calculation functions ...
+
+        // PILE ESTIMATOR
+        function calculatePileEstimates() {
+            document.getElementById('diagramTitle').textContent = "Pile Cross-Section & Spiral Layout";
+            const dia = parseFloat(document.getElementById('pileDia').value) || 0;
+            const len = parseFloat(document.getElementById('pileLength').value) || 0;
+            const cover = parseFloat(document.getElementById('pileCover').value) || 0;
+            const mainCount = parseInt(document.getElementById('pileMainBarCount').value) || 6;
+            const pitch = parseFloat(document.getElementById('pileSpiralPitch').value) || 6;
+            const wastePct = (parseFloat(document.getElementById('pileWasteFactor').value) || 0)/100;
+            const count = parseInt(document.getElementById('pileCount').value) || 1;
+
+            const mainBar = REBAR_SIZES[parseInt(document.getElementById('pileMainBarSize').value)];
+            const tieBar = REBAR_SIZES[parseInt(document.getElementById('pileTieBarSize').value)];
+
+            let dia_m = unitSystem==='imperial' ? (dia/12)*0.3048 : dia/1000;
+            let len_m = unitSystem==='imperial' ? len*0.3048 : len;
+            let cover_m = unitSystem==='imperial' ? (cover/12)*0.3048 : cover/1000;
+            let pitch_m = unitSystem==='imperial' ? (pitch/12)*0.3048 : pitch/1000;
+
+            const volM3 = Math.PI * Math.pow(dia_m/2, 2) * len_m * count;
+            const mainCut_m = len_m + 0.6; // Lap/dowel
+            const totalMainLen_m = (mainCut_m * mainCount * count) * (1 + wastePct);
+            const mainWt = totalMainLen_m * mainBar.weightKgM;
+
+            const spiralDia_m = dia_m - 2*cover_m;
+            const turns = len_m / pitch_m;
+            const spiralCut_m = turns * Math.sqrt(Math.pow(Math.PI * spiralDia_m, 2) + Math.pow(pitch_m, 2));
+            const totalSpiralLen_m = (spiralCut_m * count) * (1 + wastePct);
+            const spiralWt = totalSpiralLen_m * tieBar.weightKgM;
+
+            const grandLen_m = totalMainLen_m + totalSpiralLen_m;
+            const grandWt_kg = mainWt + spiralWt;
+
+            renderSummary(grandWt_kg, grandLen_m, volM3);
+            
+            document.getElementById('breakdownTable').innerHTML = `
+                <tr><td class="px-4 py-3 font-semibold text-cyan-600">Main Bars</td><td>${mainBar.name}</td><td>${mainCount*count} bars</td><td>${formatLen(mainCut_m)}</td><td>${formatTotalLen(totalMainLen_m)}</td><td class="text-right">${Math.round(mainWt)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-amber-600">Spiral Ties</td><td>${tieBar.name}</td><td>${count} spirals</td><td>${formatLen(spiralCut_m)}</td><td>${formatTotalLen(totalSpiralLen_m)}</td><td class="text-right">${Math.round(spiralWt)} kg</td></tr>
+            `;
+
+            drawPileDiagram(dia_m, cover_m, mainCount);
+        }
+
+        // PILE CAP ESTIMATOR
+        function calculatePileCapEstimates() {
+            document.getElementById('diagramTitle').textContent = "Pile Cap Rebar Mesh Layout";
+            const L = parseFloat(document.getElementById('pcLength').value) || 0;
+            const W = parseFloat(document.getElementById('pcWidth').value) || 0;
+            const H = parseFloat(document.getElementById('pcThickness').value) || 0;
+            const cover = parseFloat(document.getElementById('pcCover').value) || 0;
+            const spacing = parseFloat(document.getElementById('pcSpacing').value) || 6;
+            const isDouble = document.getElementById('pcDoubleMesh').checked;
+            const wastePct = (parseFloat(document.getElementById('pcWasteFactor').value) || 0)/100;
+            const count = parseInt(document.getElementById('pcCount').value) || 1;
+
+            const barInfo = REBAR_SIZES[parseInt(document.getElementById('pcBarSize').value)];
+
+            let L_m = unitSystem==='imperial' ? L*0.3048 : L;
+            let W_m = unitSystem==='imperial' ? W*0.3048 : W;
+            let H_m = unitSystem==='imperial' ? (H/12)*0.3048 : H/1000;
+            let cover_m = unitSystem==='imperial' ? (cover/12)*0.3048 : cover/1000;
+            let spacing_m = unitSystem==='imperial' ? (spacing/12)*0.3048 : spacing/1000;
+
+            const volM3 = L_m * W_m * H_m * count;
+            const mult = isDouble ? 2 : 1;
+
+            const numL = Math.floor((W_m - 2*cover_m)/spacing_m) + 1;
+            const numW = Math.floor((L_m - 2*cover_m)/spacing_m) + 1;
+
+            const cutL = (L_m - 2*cover_m) + 2*(H_m - 2*cover_m);
+            const cutW = (W_m - 2*cover_m) + 2*(H_m - 2*cover_m);
+
+            const totalLLen_m = (cutL * numL * mult * count) * (1 + wastePct);
+            const totalWLen_m = (cutW * numW * mult * count) * (1 + wastePct);
+
+            const grandLen_m = totalLLen_m + totalWLen_m;
+            const grandWt_kg = grandLen_m * barInfo.weightKgM;
+
+            renderSummary(grandWt_kg, grandLen_m, volM3);
+
+            document.getElementById('breakdownTable').innerHTML = `
+                <tr><td class="px-4 py-3 font-semibold text-teal-600">Longitudinal Mesh Bars</td><td>${barInfo.name}</td><td>${numL*mult*count} bars</td><td>${formatLen(cutL)}</td><td>${formatTotalLen(totalLLen_m)}</td><td class="text-right">${Math.round(totalLLen_m*barInfo.weightKgM)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-emerald-600">Transverse Mesh Bars</td><td>${barInfo.name}</td><td>${numW*mult*count} bars</td><td>${formatLen(cutW)}</td><td>${formatTotalLen(totalWLen_m)}</td><td class="text-right">${Math.round(totalWLen_m*barInfo.weightKgM)} kg</td></tr>
+            `;
+
+            drawFootingDiagram(L_m, W_m, cover_m, numL, numW);
+        }
+
+        // BEAM ESTIMATOR
+        function calculateBeamEstimates() {
+            document.getElementById('diagramTitle').textContent = "Beam Longitudinal & Stirrup Layout";
+            const b = parseFloat(document.getElementById('bmWidth').value) || 0;
+            const D = parseFloat(document.getElementById('bmDepth').value) || 0;
+            const L = parseFloat(document.getElementById('bmSpan').value) || 0;
+            const cover = parseFloat(document.getElementById('bmCover').value) || 0;
+            const botCount = parseInt(document.getElementById('bmBotBarCount').value) || 2;
+            const topCount = parseInt(document.getElementById('bmTopBarCount').value) || 2;
+            const spacing = parseFloat(document.getElementById('bmStirrupSpacing').value) || 6;
+            const wastePct = (parseFloat(document.getElementById('bmWasteFactor').value) || 0)/100;
+            const count = parseInt(document.getElementById('bmCount').value) || 1;
+
+            const botBar = REBAR_SIZES[parseInt(document.getElementById('bmBotBarSize').value)];
+            const topBar = REBAR_SIZES[parseInt(document.getElementById('bmTopBarSize').value)];
+            const stirrupBar = REBAR_SIZES[parseInt(document.getElementById('bmStirrupSize').value)];
+
+            let b_m = unitSystem==='imperial' ? (b/12)*0.3048 : b/1000;
+            let D_m = unitSystem==='imperial' ? (D/12)*0.3048 : D/1000;
+            let L_m = unitSystem==='imperial' ? L*0.3048 : L;
+            let cover_m = unitSystem==='imperial' ? (cover/12)*0.3048 : cover/1000;
+            let spacing_m = unitSystem==='imperial' ? (spacing/12)*0.3048 : spacing/1000;
+
+            const volM3 = b_m * D_m * L_m * count;
+            const mainCut_m = L_m + 0.5;
+
+            const totalBotLen_m = (mainCut_m * botCount * count) * (1 + wastePct);
+            const totalTopLen_m = (mainCut_m * topCount * count) * (1 + wastePct);
+
+            const stirrupCut_m = 2*(b_m - 2*cover_m) + 2*(D_m - 2*cover_m) + 0.15;
+            const stirrupCount = Math.floor(L_m / spacing_m) + 1;
+            const totalStirrupLen_m = (stirrupCut_m * stirrupCount * count) * (1 + wastePct);
+
+            const grandLen_m = totalBotLen_m + totalTopLen_m + totalStirrupLen_m;
+            const grandWt_kg = totalBotLen_m*botBar.weightKgM + totalTopLen_m*topBar.weightKgM + totalStirrupLen_m*stirrupBar.weightKgM;
+
+            renderSummary(grandWt_kg, grandLen_m, volM3);
+
+            document.getElementById('breakdownTable').innerHTML = `
+                <tr><td class="px-4 py-3 font-semibold text-orange-600">Bottom Main Bars</td><td>${botBar.name}</td><td>${botCount*count} bars</td><td>${formatLen(mainCut_m)}</td><td>${formatTotalLen(totalBotLen_m)}</td><td class="text-right">${Math.round(totalBotLen_m*botBar.weightKgM)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-amber-600">Top Hanger Bars</td><td>${topBar.name}</td><td>${topCount*count} bars</td><td>${formatLen(mainCut_m)}</td><td>${formatTotalLen(totalTopLen_m)}</td><td class="text-right">${Math.round(totalTopLen_m*topBar.weightKgM)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-slate-600">Stirrups / Ties</td><td>${stirrupBar.name}</td><td>${stirrupCount*count} ties</td><td>${formatLen(stirrupCut_m)}</td><td>${formatTotalLen(totalStirrupLen_m)}</td><td class="text-right">${Math.round(totalStirrupLen_m*stirrupBar.weightKgM)} kg</td></tr>
+            `;
+
+            drawColumnDiagram(b_m, D_m, cover_m, botCount + topCount);
+        }
+
+        // T-BEAM ESTIMATOR
+        function calculateTBeamEstimates() {
+            document.getElementById('diagramTitle').textContent = "T-Beam Section & Rebar Layout";
+            const bf = parseFloat(document.getElementById('tbFlangeWidth').value) || 0;
+            const hf = parseFloat(document.getElementById('tbFlangeDepth').value) || 0;
+            const bw = parseFloat(document.getElementById('tbWebWidth').value) || 0;
+            const D = parseFloat(document.getElementById('tbTotalDepth').value) || 0;
+            const L = parseFloat(document.getElementById('tbSpan').value) || 0;
+            const cover = parseFloat(document.getElementById('tbCover').value) || 0;
+            const botCount = parseInt(document.getElementById('tbBotBarCount').value) || 4;
+            const spacing = parseFloat(document.getElementById('tbStirrupSpacing').value) || 6;
+            const wastePct = (parseFloat(document.getElementById('tbWasteFactor').value) || 0)/100;
+            const count = parseInt(document.getElementById('tbCount').value) || 1;
+
+            const botBar = REBAR_SIZES[parseInt(document.getElementById('tbBotBarSize').value)];
+            const stirrupBar = REBAR_SIZES[parseInt(document.getElementById('tbStirrupSize').value)];
+
+            let bf_m = unitSystem==='imperial' ? (bf/12)*0.3048 : bf/1000;
+            let hf_m = unitSystem==='imperial' ? (hf/12)*0.3048 : hf/1000;
+            let bw_m = unitSystem==='imperial' ? (bw/12)*0.3048 : bw/1000;
+            let D_m = unitSystem==='imperial' ? (D/12)*0.3048 : D/1000;
+            let L_m = unitSystem==='imperial' ? L*0.3048 : L;
+            let cover_m = unitSystem==='imperial' ? (cover/12)*0.3048 : cover/1000;
+            let spacing_m = unitSystem==='imperial' ? (spacing/12)*0.3048 : spacing/1000;
+
+            const areaM2 = (bf_m * hf_m) + (bw_m * (D_m - hf_m));
+            const volM3 = areaM2 * L_m * count;
+
+            const mainCut_m = L_m + 0.5;
+            const totalBotLen_m = (mainCut_m * botCount * count) * (1 + wastePct);
+
+            const stirrupCut_m = 2*(bw_m - 2*cover_m) + 2*(D_m - 2*cover_m) + 0.15;
+            const stirrupCount = Math.floor(L_m / spacing_m) + 1;
+            const totalStirrupLen_m = (stirrupCut_m * stirrupCount * count) * (1 + wastePct);
+
+            const grandLen_m = totalBotLen_m + totalStirrupLen_m;
+            const grandWt_kg = totalBotLen_m*botBar.weightKgM + totalStirrupLen_m*stirrupBar.weightKgM;
+
+            renderSummary(grandWt_kg, grandLen_m, volM3);
+
+            document.getElementById('breakdownTable').innerHTML = `
+                <tr><td class="px-4 py-3 font-semibold text-rose-600">Flange & Web Tension Bars</td><td>${botBar.name}</td><td>${botCount*count} bars</td><td>${formatLen(mainCut_m)}</td><td>${formatTotalLen(totalBotLen_m)}</td><td class="text-right">${Math.round(totalBotLen_m*botBar.weightKgM)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-amber-600">Web Stirrups</td><td>${stirrupBar.name}</td><td>${stirrupCount*count} ties</td><td>${formatLen(stirrupCut_m)}</td><td>${formatTotalLen(totalStirrupLen_m)}</td><td class="text-right">${Math.round(totalStirrupLen_m*stirrupBar.weightKgM)} kg</td></tr>
+            `;
+
+            drawTBeamDiagram(bf_m, hf_m, bw_m, D_m, cover_m);
+        }
+
+        // SLAB ESTIMATOR
+        function calculateSlabEstimates() {
+            document.getElementById('diagramTitle').textContent = "Slab Reinforcement Grid";
+            const Lx = parseFloat(document.getElementById('slLong').value) || 0;
+            const Ly = parseFloat(document.getElementById('slShort').value) || 0;
+            const t = parseFloat(document.getElementById('slThickness').value) || 0;
+            const cover = parseFloat(document.getElementById('slCover').value) || 0;
+            const mainSpacing = parseFloat(document.getElementById('slMainSpacing').value) || 6;
+            const distSpacing = parseFloat(document.getElementById('slDistSpacing').value) || 8;
+            const hasCrank = document.getElementById('slCrank').checked;
+            const wastePct = (parseFloat(document.getElementById('slWasteFactor').value) || 0)/100;
+            const count = parseInt(document.getElementById('slCount').value) || 1;
+
+            const mainBar = REBAR_SIZES[parseInt(document.getElementById('slMainBarSize').value)];
+            const distBar = REBAR_SIZES[parseInt(document.getElementById('slDistBarSize').value)];
+
+            let Lx_m = unitSystem==='imperial' ? Lx*0.3048 : Lx;
+            let Ly_m = unitSystem==='imperial' ? Ly*0.3048 : Ly;
+            let t_m = unitSystem==='imperial' ? (t/12)*0.3048 : t/1000;
+            let cover_m = unitSystem==='imperial' ? (cover/12)*0.3048 : cover/1000;
+            let mainSp_m = unitSystem==='imperial' ? (mainSpacing/12)*0.3048 : mainSpacing/1000;
+            let distSp_m = unitSystem==='imperial' ? (distSpacing/12)*0.3048 : distSpacing/1000;
+
+            const volM3 = Lx_m * Ly_m * t_m * count;
+            const crankExtra = hasCrank ? 0.42 * (t_m - 2*cover_m) : 0;
+
+            const mainCount = Math.floor(Lx_m / mainSp_m) + 1;
+            const distCount = Math.floor(Ly_m / distSp_m) + 1;
+
+            const mainCut_m = (Ly_m - 2*cover_m) + crankExtra;
+            const distCut_m = (Lx_m - 2*cover_m);
+
+            const totalMainLen_m = (mainCut_m * mainCount * count) * (1 + wastePct);
+            const totalDistLen_m = (distCut_m * distCount * count) * (1 + wastePct);
+
+            const grandLen_m = totalMainLen_m + totalDistLen_m;
+            const grandWt_kg = totalMainLen_m*mainBar.weightKgM + totalDistLen_m*distBar.weightKgM;
+
+            renderSummary(grandWt_kg, grandLen_m, volM3);
+
+            document.getElementById('breakdownTable').innerHTML = `
+                <tr><td class="px-4 py-3 font-semibold text-emerald-600">Main Reinforcement</td><td>${mainBar.name}</td><td>${mainCount*count} bars</td><td>${formatLen(mainCut_m)}</td><td>${formatTotalLen(totalMainLen_m)}</td><td class="text-right">${Math.round(totalMainLen_m*mainBar.weightKgM)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-teal-600">Distribution Bars</td><td>${distBar.name}</td><td>${distCount*count} bars</td><td>${formatLen(distCut_m)}</td><td>${formatTotalLen(totalDistLen_m)}</td><td class="text-right">${Math.round(totalDistLen_m*distBar.weightKgM)} kg</td></tr>
+            `;
+
+            drawFootingDiagram(Lx_m, Ly_m, cover_m, distCount, mainCount);
+        }
+
+        // STAIR ESTIMATOR
+        function calculateStairEstimates() {
+            document.getElementById('diagramTitle').textContent = "Staircase Flight Reinforcement";
+            const W = parseFloat(document.getElementById('stWidth').value) || 0;
+            const G = parseFloat(document.getElementById('stGoing').value) || 0;
+            const R = parseFloat(document.getElementById('stRise').value) || 0;
+            const waist = parseFloat(document.getElementById('stWaist').value) || 0;
+            const mainSpacing = parseFloat(document.getElementById('stMainSpacing').value) || 6;
+            const distSpacing = parseFloat(document.getElementById('stDistSpacing').value) || 8;
+            const wastePct = (parseFloat(document.getElementById('stWasteFactor').value) || 0)/100;
+            const count = parseInt(document.getElementById('stCount').value) || 1;
+
+            const mainBar = REBAR_SIZES[parseInt(document.getElementById('stMainBarSize').value)];
+            const distBar = REBAR_SIZES[parseInt(document.getElementById('stDistBarSize').value)];
+
+            let W_m = unitSystem==='imperial' ? W*0.3048 : W;
+            let G_m = unitSystem==='imperial' ? G*0.3048 : G;
+            let R_m = unitSystem==='imperial' ? R*0.3048 : R;
+            let waist_m = unitSystem==='imperial' ? (waist/12)*0.3048 : waist/1000;
+            let mainSp_m = unitSystem==='imperial' ? (mainSpacing/12)*0.3048 : mainSpacing/1000;
+            let distSp_m = unitSystem==='imperial' ? (distSpacing/12)*0.3048 : distSpacing/1000;
+
+            const inclinedLen_m = Math.sqrt(G_m*G_m + R_m*R_m);
+            const volM3 = (inclinedLen_m * W_m * waist_m + (0.5 * G_m * R_m * W_m)) * count;
+
+            const mainCount = Math.floor(W_m / mainSp_m) + 1;
+            const distCount = Math.floor(inclinedLen_m / distSp_m) + 1;
+
+            const mainCut_m = inclinedLen_m + 0.6; // Anchors
+            const distCut_m = W_m - 0.05;
+
+            const totalMainLen_m = (mainCut_m * mainCount * count) * (1 + wastePct);
+            const totalDistLen_m = (distCut_m * distCount * count) * (1 + wastePct);
+
+            const grandLen_m = totalMainLen_m + totalDistLen_m;
+            const grandWt_kg = totalMainLen_m*mainBar.weightKgM + totalDistLen_m*distBar.weightKgM;
+
+            renderSummary(grandWt_kg, grandLen_m, volM3);
+
+            document.getElementById('breakdownTable').innerHTML = `
+                <tr><td class="px-4 py-3 font-semibold text-purple-600">Inclined Main Steel</td><td>${mainBar.name}</td><td>${mainCount*count} bars</td><td>${formatLen(mainCut_m)}</td><td>${formatTotalLen(totalMainLen_m)}</td><td class="text-right">${Math.round(totalMainLen_m*mainBar.weightKgM)} kg</td></tr>
+                <tr><td class="px-4 py-3 font-semibold text-indigo-600">Step Distribution Steel</td><td>${distBar.name}</td><td>${distCount*count} bars</td><td>${formatLen(distCut_m)}</td><td>${formatTotalLen(totalDistLen_m)}</td><td class="text-right">${Math.round(totalDistLen_m*distBar.weightKgM)} kg</td></tr>
+            `;
+
+            drawFootingDiagram(G_m, W_m, 0.02, distCount, mainCount);
+        }
+
+        // Render Summary Helper
+        function renderSummary(grandWt_kg, grandLen_m, volM3) {
+            const grandWt_lbs = grandWt_kg * 2.20462;
+            const grandWt_tons = grandWt_kg / 1000;
+            const grandLen_ft = grandLen_m / 0.3048;
+            const volCuFt = volM3 * 35.3147;
+            const volCuYd = volCuFt / 27;
+
+            document.getElementById('resTotalWeight').textContent = `${Math.round(grandWt_kg).toLocaleString()} kg`;
+            document.getElementById('resTotalWeightSub').textContent = `${Math.round(grandWt_lbs).toLocaleString()} lbs / ${grandWt_tons.toFixed(2)} Metric Tons`;
+
+            if (unitSystem === 'imperial') {
+                document.getElementById('resTotalLength').textContent = `${Math.round(grandLen_ft).toLocaleString()} ft`;
+                document.getElementById('resConcreteVol').textContent = `${volCuFt.toFixed(1)} cu.ft`;
+                document.getElementById('resConcreteVolSub').textContent = `${volM3.toFixed(2)} m³ / ${volCuYd.toFixed(2)} yd³`;
+            } else {
+                document.getElementById('resTotalLength').textContent = `${Math.round(grandLen_m).toLocaleString()} m`;
+                document.getElementById('resConcreteVol').textContent = `${volM3.toFixed(2)} m³`;
+                document.getElementById('resConcreteVolSub').textContent = `${volCuFt.toFixed(1)} cu.ft / ${volCuYd.toFixed(2)} yd³`;
+            }
+
+            const totalStockBars12m = Math.ceil(grandLen_m / 12);
+            document.getElementById('resStockBars').textContent = `~ ${totalStockBars12m} Stock Bars (40ft / 12m length)`;
+            document.getElementById('stockBarPiecesText').textContent = `Order approx: ${totalStockBars12m} full length bars`;
+            document.getElementById('tbTotalLength').textContent = unitSystem === 'imperial' ? `${Math.round(grandLen_ft)} ft` : `${Math.round(grandLen_m)} m`;
+            document.getElementById('tbTotalWeight').textContent = `${Math.round(grandWt_kg)} kg`;
+        }
+
+        const formatLen = (mVal) => unitSystem === 'imperial' ? (mVal/0.3048).toFixed(2) + ' ft' : mVal.toFixed(2) + ' m';
+        const formatTotalLen = (mVal) => unitSystem === 'imperial' ? Math.round(mVal/0.3048) + ' ft' : Math.round(mVal) + ' m';
+
+        // Draw Circular Pile Section Diagram
+        function drawPileDiagram(dia, cover, barCount) {
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 40;
+            const avail = Math.min(canvas.width, canvas.height) - padding * 2;
+            const scale = avail / dia;
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const rPx = (dia / 2) * scale;
+            const coverPx = cover * scale;
+
+            // Outer Concrete Circle
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, rPx, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Spiral Loop
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(cx, cy, rPx - coverPx, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Main Vertical Bars
+            ctx.fillStyle = '#38bdf8';
+            for(let i = 0; i < barCount; i++) {
+                let angle = (i * 2 * Math.PI) / barCount;
+                let bx = cx + (rPx - coverPx) * Math.cos(angle);
+                let by = cy + (rPx - coverPx) * Math.sin(angle);
+                ctx.beginPath();
+                ctx.arc(bx, by, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Draw T-Beam Diagram
+        function drawTBeamDiagram(bf, hf, bw, D, cover) {
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 40;
+            const availW = canvas.width - padding * 2;
+            const availH = canvas.height - padding * 2;
+
+            const scale = Math.min(availW / bf, availH / D);
+            const drawBf = bf * scale;
+            const drawHf = hf * scale;
+            const drawBw = bw * scale;
+            const drawD = D * scale;
+
+            const startX = (canvas.width - drawBf) / 2;
+            const startY = (canvas.height - drawD) / 2;
+
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(startX + drawBf, startY);
+            ctx.lineTo(startX + drawBf, startY + drawHf);
+            ctx.lineTo(startX + (drawBf + drawBw)/2, startY + drawHf);
+            ctx.lineTo(startX + (drawBf + drawBw)/2, startY + drawD);
+            ctx.lineTo(startX + (drawBf - drawBw)/2, startY + drawD);
+            ctx.lineTo(startX + (drawBf - drawBw)/2, startY + drawHf);
+            ctx.lineTo(startX, startY + drawHf);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // Add event listeners for all forms
+        [pileForm, pileCapForm, beamForm, tbeamForm, slabForm, stairForm].forEach(f => {
+            if (f) {
+                f.addEventListener('input', calculateEstimates);
+                f.addEventListener('change', calculateEstimates);
+            }
+        });
+    </script>
+</body>
+</html>
